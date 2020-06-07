@@ -141,4 +141,56 @@ public class UserDAO implements IUserDAO {
         }
 
     }
+
+    @Override
+    public void addUserTransaction(String name,String email,String country, int[] permisions) throws SQLException {
+        Connection connection =null;
+
+        PreparedStatement preparedStatement =null;
+
+        PreparedStatement pstAssignment =null;
+        ResultSet rs = null;
+
+        try {
+            connection = getConnection();
+            connection.setAutoCommit(false);
+            preparedStatement =connection.prepareStatement(INSERT_USERS_SQL,Statement.RETURN_GENERATED_KEYS);
+            preparedStatement.setString(1,name);
+            preparedStatement.setString(2,email);
+            preparedStatement.setString(3,country);
+            int rowAffected = preparedStatement.executeUpdate();
+
+            rs =preparedStatement.getGeneratedKeys();
+            int user_Id = 0;
+            if (rs.next()){
+                user_Id =rs.getInt(1);
+            }
+            if (rowAffected==1){
+                String sqlPivot = "INSERT INTO user_permision(permision_id,user_id) VALUES (?,?);";
+                pstAssignment =connection.prepareStatement(sqlPivot);
+                for (int permisionId :permisions){
+                    pstAssignment.setInt(1,user_Id);
+                    pstAssignment.setInt(2,permisionId);
+                    pstAssignment.executeUpdate();
+                }
+                connection.commit();
+            }else {
+                connection.rollback();
+            }
+        } catch (SQLException e) {
+            try {
+                if (connection!= null){
+                    connection.rollback();
+                }
+            } catch (SQLException ex) {
+                System.out.println(ex.getMessage());
+            }
+            System.out.println(e.getMessage());
+        }finally {
+            if (rs!= null)rs.close();
+            if (preparedStatement!= null)preparedStatement.close();
+            if (pstAssignment !=null) pstAssignment.close();
+            if (connection != null) connection.close();
+        }
+    }
 }

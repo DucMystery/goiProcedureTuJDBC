@@ -42,12 +42,28 @@ public class UserServlet extends HttpServlet {
                 break;
             case "delete":
                 deleteUser(req,resp);
+                break;
+            case "permision":
+                addUserPermision(req,resp);
+                break;
             default:
                 try {
                     listUser(req,resp);
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
+        }
+    }
+
+    private void addUserPermision(HttpServletRequest req, HttpServletResponse resp) {
+        String name = "kien";
+        String email = "kien69@gamil.com";
+        String country = "VN";
+        int [] permision = {1,2,4};
+        try {
+            userDAO.addUserTransaction(name, email,country,permision);
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
